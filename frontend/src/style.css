@@ -1,0 +1,412 @@
+:root {
+  --bg: #0a0a0a;
+  --bg-glow: rgba(255, 120, 30, 0.14);
+
+  --metal-hot: #ffd27a;
+  --metal-mid: #ff7a18;
+  --metal-cool-hi: #d7dbe1;
+  --metal-cool-lo: #7d828a;
+
+  --ember: #ff6a00;
+  --text-bright: #eae7e2;
+  --text-dim: rgba(220, 220, 225, 0.55);
+  --error: #ff6b5e;
+
+  --panel-bg: linear-gradient(180deg, rgba(42, 39, 36, 0.55), rgba(14, 13, 12, 0.7));
+  --panel-border: rgba(215, 219, 225, 0.22);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  overflow-x: hidden;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  color: var(--text-bright);
+  background:
+    radial-gradient(circle at 50% 42%, var(--bg-glow) 0%, transparent 55%),
+    radial-gradient(circle at 50% 50%, transparent 40%, rgba(0, 0, 0, 0.8) 100%),
+    var(--bg);
+  background-color: var(--bg);
+}
+
+#forge-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.stage {
+  position: relative;
+  z-index: 1;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(1.75rem, 4vw, 2.75rem);
+  padding: 2rem 1.25rem;
+  text-align: center;
+}
+
+.title-filter {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+.title {
+  margin: 0;
+  font-family: "Cinzel", serif;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  font-size: clamp(3rem, 14vw, 11rem);
+  line-height: 1;
+  filter: url(#heat-haze) drop-shadow(0 0 40px rgba(255, 122, 24, 0.55));
+  animation: forge-glow-pulse 4s ease-in-out 2.5s infinite alternate;
+}
+
+.title span {
+  position: relative;
+  display: inline-block;
+  background: linear-gradient(180deg, var(--metal-cool-hi) 0%, var(--metal-cool-lo) 55%, var(--metal-cool-hi) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  opacity: 0;
+  animation: forge-reveal 2.2s ease-out 0.15s forwards;
+}
+
+.title span::before {
+  content: "WLQOH";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #fff9ec 0%, var(--metal-hot) 45%, var(--metal-mid) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: blur(3px) brightness(1.6);
+  opacity: 1;
+  animation: forge-cool-down 2.4s ease-in forwards;
+}
+
+.title span::after {
+  content: "WLQOH";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 32%, rgba(255, 255, 255, 0.65) 48%, transparent 64%);
+  background-size: 260% 100%;
+  background-position: 130% 0%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  animation: forge-sheen 5.5s ease-in-out 2.6s infinite;
+}
+
+/* Повторная ковка при отправке формы */
+.title.is-forging {
+  animation: forge-glow-pulse 4s ease-in-out infinite alternate, forge-punch 1.3s ease-out;
+}
+
+.title.is-forging span::before {
+  opacity: 1;
+  animation: forge-cool-down 1.3s ease-in forwards;
+}
+
+@keyframes forge-reveal {
+  from {
+    opacity: 0;
+    transform: scale(1.04);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes forge-cool-down {
+  0% {
+    opacity: 1;
+    filter: blur(3px) brightness(1.6);
+  }
+  40% {
+    opacity: 1;
+    filter: blur(1px) brightness(1.3);
+  }
+  100% {
+    opacity: 0;
+    filter: blur(0) brightness(1);
+  }
+}
+
+@keyframes forge-glow-pulse {
+  from {
+    filter: url(#heat-haze) drop-shadow(0 0 30px rgba(255, 122, 24, 0.4));
+  }
+  to {
+    filter: url(#heat-haze) drop-shadow(0 0 55px rgba(255, 122, 24, 0.65));
+  }
+}
+
+@keyframes forge-sheen {
+  0% {
+    background-position: 140% 0%;
+  }
+  45%,
+  100% {
+    background-position: -40% 0%;
+  }
+}
+
+@keyframes forge-punch {
+  0% {
+    transform: scale(1);
+  }
+  15% {
+    transform: scale(0.965);
+  }
+  35% {
+    transform: scale(1.02);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.forge-form {
+  display: flex;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 520px;
+}
+
+.url-input {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  background: rgba(20, 18, 16, 0.6);
+  border: 1px solid var(--metal-cool-lo);
+  border-radius: 6px;
+  padding: 0.85rem 1.1rem;
+  color: var(--text-bright);
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.25s, box-shadow 0.25s;
+}
+
+.url-input::placeholder {
+  color: var(--text-dim);
+}
+
+.url-input:focus {
+  border-color: var(--ember);
+  box-shadow: 0 0 0 3px rgba(255, 106, 0, 0.18), 0 0 20px rgba(255, 106, 0, 0.25);
+}
+
+.url-input:focus-visible {
+  border-color: var(--ember);
+  box-shadow: 0 0 0 3px rgba(255, 106, 0, 0.28), 0 0 24px rgba(255, 106, 0, 0.35);
+}
+
+.forge-button {
+  flex-shrink: 0;
+  min-height: 44px;
+  background: linear-gradient(180deg, var(--metal-mid), #b23e05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #fff3d6;
+  font-family: "Cinzel", serif;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 0.85rem 1.6rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.2s, filter 0.2s;
+}
+
+.forge-button:hover {
+  filter: brightness(1.12);
+  box-shadow: 0 0 22px rgba(255, 106, 0, 0.4);
+}
+
+.forge-button:active {
+  transform: scale(0.97);
+}
+
+.forge-button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 106, 0, 0.3), 0 0 22px rgba(255, 106, 0, 0.4);
+}
+
+.forge-button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+  filter: none;
+  box-shadow: none;
+}
+
+.result {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  max-width: min(90vw, 560px);
+  padding: 1rem 1.25rem;
+  color: var(--text-bright);
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 10px 30px rgba(0, 0, 0, 0.45);
+  animation: forge-reveal 0.45s ease-out;
+}
+
+.result[hidden] {
+  display: none;
+}
+
+.result-main {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.65rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.result-link {
+  color: var(--metal-mid);
+  text-decoration: none;
+  font-weight: 600;
+  border-bottom: 1px dashed rgba(255, 122, 24, 0.4);
+  word-break: break-all;
+}
+
+.result-link:hover {
+  color: #ffb066;
+}
+
+.result-link:focus-visible {
+  outline: 2px solid var(--ember);
+  outline-offset: 3px;
+}
+
+.copy-button {
+  min-height: 36px;
+  background: transparent;
+  border: 1px solid var(--metal-cool-lo);
+  color: var(--text-dim);
+  padding: 0.4rem 0.9rem;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.copy-button:hover {
+  border-color: var(--ember);
+  color: var(--ember);
+}
+
+.copy-button:focus-visible {
+  outline: 2px solid var(--ember);
+  outline-offset: 2px;
+}
+
+.qr-panel {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  background: #eae7e2;
+  border-radius: 8px;
+  line-height: 0;
+}
+
+.qr-panel:empty {
+  display: none;
+}
+
+.error-text {
+  color: var(--error);
+  font-size: 0.9rem;
+  max-width: 420px;
+}
+
+.error-text[hidden] {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .forge-form {
+    flex-direction: column;
+  }
+
+  .result {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .result-main {
+    align-items: center;
+    text-align: center;
+  }
+
+  .qr-panel {
+    align-self: center;
+  }
+}
+
+@media (max-width: 400px) {
+  .stage {
+    gap: 1.5rem;
+    padding: 1.5rem 1rem;
+  }
+
+  .result {
+    padding: 0.85rem 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .title,
+  .title.is-forging,
+  .title span,
+  .title span::before,
+  .title span::after {
+    animation: none !important;
+    filter: drop-shadow(0 0 30px rgba(255, 122, 24, 0.35)) !important;
+    transform: none !important;
+  }
+
+  .title span {
+    opacity: 1;
+  }
+
+  .title span::before,
+  .title span::after {
+    opacity: 0;
+  }
+
+  .result {
+    animation: none;
+  }
+
+  .forge-button,
+  .url-input,
+  .copy-button {
+    transition: none;
+  }
+}

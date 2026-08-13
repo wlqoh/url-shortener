@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WLQOH</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="app">
+      <canvas id="forge-canvas"></canvas>
+
+      <main class="stage">
+        <h1 class="title" id="title">
+          <svg class="title-filter" width="0" height="0">
+            <defs>
+              <filter id="heat-haze">
+                <feTurbulence
+                  id="haze-turbulence"
+                  type="fractalNoise"
+                  baseFrequency="0.01 0.04"
+                  numOctaves="2"
+                  seed="2"
+                  result="noise"
+                >
+                  <animate
+                    attributeName="baseFrequency"
+                    dur="6s"
+                    values="0.01 0.04;0.015 0.06;0.01 0.04"
+                    repeatCount="indefinite"
+                  />
+                </feTurbulence>
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="3" xChannelSelector="R" yChannelSelector="G" />
+              </filter>
+            </defs>
+          </svg>
+          <span>WLQOH</span>
+        </h1>
+
+        <form class="forge-form" id="forge-form" autocomplete="off">
+          <input
+            class="url-input"
+            id="url-input"
+            type="url"
+            name="url"
+            placeholder="вставьте ссылку для перековки…"
+            required
+          />
+          <button class="forge-button" id="forge-button" type="submit">Выковать</button>
+        </form>
+
+        <div class="result" id="result" hidden>
+          <div class="result-main">
+            <a class="result-link" id="result-link" target="_blank" rel="noopener noreferrer"></a>
+            <button class="copy-button" id="copy-button" type="button">Скопировать</button>
+          </div>
+          <div class="qr-panel" id="qr-panel" aria-hidden="true"></div>
+        </div>
+
+        <p class="error-text" id="error-text" role="alert" aria-live="polite" hidden></p>
+      </main>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

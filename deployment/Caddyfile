@@ -1,0 +1,11 @@
+# Caddy автоматически получает и продлевает TLS-сертификат (Let's Encrypt)
+# для домена ниже и проксирует весь трафик на статику/backend через frontend-nginx.
+#
+# Опционально можно задать email для уведомлений ACME:
+# {
+#     email you@example.com
+# }
+
+shurl.hyorward.tech {
+    reverse_proxy frontend:80
+}

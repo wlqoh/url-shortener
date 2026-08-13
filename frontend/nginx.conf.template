@@ -1,0 +1,25 @@
+server {
+    listen 80;
+    server_name shurl.hyorward.tech;
+
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # Создание ссылки: инъекция BasicAuth и проксирование на бэкенд
+    location = /url {
+        proxy_pass http://backend:8082/url;
+        proxy_set_header Host $host;
+        proxy_set_header Authorization "${PROXY_AUTH}";
+    }
+
+    # Редирект: одиночный сегмент из 6 символов [A-Za-z0-9] = alias → на бэкенд
+    location ~ "^/[A-Za-z0-9]{6}$" {
+        proxy_pass http://backend:8082;
+        proxy_set_header Host $host;
+    }
+
+    # SPA: статика и фолбэк
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}

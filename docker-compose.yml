@@ -3,15 +3,13 @@ services:
     image: postgres:17-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_USER: murad
-      POSTGRES_PASSWORD: "123"
-      POSTGRES_DB: murad
+      POSTGRES_USER: ${POSTGRES_USER:-murad}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-murad}
     volumes:
       - pgdata:/var/lib/postgresql/data
-    ports:
-      - "5435:5435"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U murad -d murad"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-murad} -d ${POSTGRES_DB:-murad}"]
       interval: 5s
       timeout: 3s
       retries: 5
@@ -22,7 +20,7 @@ services:
 #      db:
 #        condition: service_healthy
 #    environment:
-#      PGPASSWORD: "123"
+#      PGPASSWORD: ${POSTGRES_PASSWORD}
 #    volumes:
 #      - ./sql/init:/migrations:ro
 #    command: >
@@ -46,29 +44,42 @@ services:
     restart: unless-stopped
     environment:
       CONFIG_PATH: ./config/prod.yaml
+      HTTP_SERVER_PASSWORD: ${HTTP_SERVER_PASSWORD}
+      STORAGE_PATH: postgres://${POSTGRES_USER:-murad}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-murad}?sslmode=disable
     depends_on:
       db:
         condition: service_healthy
 #      migrate:
 #        condition: service_completed_successfully
-    ports:
-      - "8082:8082"
+    # Порт наружу не публикуется — backend доступен только из docker-сети (через frontend/nginx).
 
-#  frontend:
-#    build:
-#      context: ./frontend
-#      dockerfile: Dockerfile
-#      args:
-#        VITE_WEBRTC_STUN_URLS: ${VITE_WEBRTC_STUN_URLS:-stun:stun.l.google.com:19302}
-#        VITE_WEBRTC_TURN_URLS: ${VITE_WEBRTC_TURN_URLS:-turn:45.155.205.212:3478?transport=udp,turn:45.155.205.212:3478?transport=tcp,turn:45.155.205.212:5349?transport=udp,turn:45.155.205.212:5349?transport=tcp}
-#        VITE_WEBRTC_TURN_USERNAME: ${VITE_WEBRTC_TURN_USERNAME:-mini discord}
-#        VITE_WEBRTC_TURN_CREDENTIAL: ${VITE_WEBRTC_TURN_CREDENTIAL:-${TURN_PASSWORD:-StrongPassword123}}
-#        VITE_WEBRTC_FORCE_RELAY: ${VITE_WEBRTC_FORCE_RELAY:-false}
-#    restart: unless-stopped
-#    depends_on:
-#      - backend
-#    ports:
-#      - "127.0.0.1:8081:80"
+  # PROXY_AUTH и HTTP_SERVER_PASSWORD должны отражать один и тот же пароль:
+  #   PROXY_AUTH="Basic $(printf 'Murrr228:<пароль>' | base64)"
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      PROXY_AUTH: ${PROXY_AUTH}
+    # Порт наружу не публикуется — публичный вход только через caddy (TLS-терминация).
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      - frontend
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deployment/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
 
 volumes:
   pgdata:
+  caddy_data:
+  caddy_config:

@@ -43,15 +43,31 @@
         </h1>
 
         <form class="forge-form" id="forge-form" autocomplete="off">
-          <input
-            class="url-input"
-            id="url-input"
-            type="url"
-            name="url"
-            placeholder="вставьте ссылку для перековки…"
-            required
-          />
-          <button class="forge-button" id="forge-button" type="submit">Выковать</button>
+          <div class="forge-row">
+            <input
+              class="url-input"
+              id="url-input"
+              type="url"
+              name="url"
+              placeholder="вставьте ссылку для перековки…"
+              required
+            />
+            <button class="forge-button" id="forge-button" type="submit">Выковать</button>
+          </div>
+          <label class="alias-row" for="alias-input">
+            <span class="alias-prefix" id="alias-prefix"></span>
+            <input
+              class="alias-input"
+              id="alias-input"
+              type="text"
+              name="alias"
+              placeholder="свой хвост (необязательно)"
+              maxlength="32"
+              pattern="[A-Za-z0-9_-]{3,32}"
+              spellcheck="false"
+              autocapitalize="off"
+            />
+          </label>
         </form>
 
         <div class="result" id="result" hidden>

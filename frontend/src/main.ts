@@ -1,6 +1,6 @@
 import './style.css'
 import { ForgeFX } from './forge'
-import { shortenUrl } from './shorten'
+import { shortenUrl, SHORT_ORIGIN } from './shorten'
 import { renderQr, clearQr } from './qr'
 import { triggerForge, isReducedMotion } from './metal'
 
@@ -8,12 +8,17 @@ const titleEl = document.getElementById('title') as HTMLHeadingElement
 const canvasEl = document.getElementById('forge-canvas') as HTMLCanvasElement
 const formEl = document.getElementById('forge-form') as HTMLFormElement
 const inputEl = document.getElementById('url-input') as HTMLInputElement
+const aliasEl = document.getElementById('alias-input') as HTMLInputElement
+const aliasPrefixEl = document.getElementById('alias-prefix') as HTMLSpanElement
 const buttonEl = document.getElementById('forge-button') as HTMLButtonElement
 const resultEl = document.getElementById('result') as HTMLDivElement
 const resultLinkEl = document.getElementById('result-link') as HTMLAnchorElement
 const copyButtonEl = document.getElementById('copy-button') as HTMLButtonElement
 const qrPanelEl = document.getElementById('qr-panel') as HTMLDivElement
 const errorEl = document.getElementById('error-text') as HTMLParagraphElement
+
+// Показываем домен приставкой к полю хвоста, чтобы была видна итоговая ссылка.
+aliasPrefixEl.textContent = `${SHORT_ORIGIN.replace(/^https?:\/\//, '')}/`
 
 let fx: ForgeFX | null = null
 
@@ -74,6 +79,8 @@ async function handleSubmit(event: SubmitEvent): Promise<void> {
   const url = inputEl.value.trim()
   if (!url) return
 
+  const alias = aliasEl.value.trim()
+
   hideError()
   hideResult()
 
@@ -86,12 +93,13 @@ async function handleSubmit(event: SubmitEvent): Promise<void> {
     fx.burst(titleEl.getBoundingClientRect(), 70)
   }
 
-  const result = await shortenUrl(url)
+  const result = await shortenUrl(url, alias)
 
   buttonEl.disabled = false
   buttonEl.textContent = originalLabel
 
   if (result.ok) {
+    aliasEl.value = ''
     await showResult(result.short)
   } else {
     showError(result.message)

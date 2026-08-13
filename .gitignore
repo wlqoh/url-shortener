@@ -1,6 +1,7 @@
 /storage/storage.db
 local.env
 config/local.yaml
+/.env
 
 frontend/node_modules
 frontend/dist

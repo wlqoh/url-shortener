@@ -10,6 +10,7 @@ import (
 	"urlshortener/internal/http-server/handlers/url/delete"
 	"urlshortener/internal/http-server/handlers/url/save"
 	"urlshortener/internal/http-server/middleware/logger"
+	"urlshortener/internal/http-server/middleware/tocken_bucket"
 	"urlshortener/internal/lib/logger/handlers/slogpretty"
 	"urlshortener/internal/lib/logger/sl"
 	"urlshortener/internal/storage/postgres"
@@ -47,7 +48,10 @@ func main() {
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.URLFormat)
 
+	readLimiter := tocken_bucket.NewTokenBucket(20.0/60.0, 20)
+	writeLimiter := tocken_bucket.NewTokenBucket(5.0/60.0, 5)
 	router.Route("/url", func(r chi.Router) {
+		r.Use(writeLimiter.ChiRateLimitMiddleware)
 		r.Use(middleware.BasicAuth("urlshortener", map[string]string{
 			cfg.HTTPServer.User: cfg.HTTPServer.Password,
 		}))
@@ -55,7 +59,7 @@ func main() {
 		r.Delete("/{alias}", delete.New(log, storage))
 	})
 
-	router.Get("/{alias}", redirect.New(log, storage))
+	router.With(readLimiter.ChiRateLimitMiddleware).Get("/{alias}", redirect.New(log, storage))
 
 	log.Info("starting server", slog.String("address", cfg.HTTPServer.Address))
 

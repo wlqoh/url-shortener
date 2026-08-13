@@ -1,5 +1,5 @@
 env: "prod"
-storage_path: "postgres://murad:123@localhost:5432/postgres?sslmode=disable"
+storage_path: "postgres://murad:123@db:5432/murad?sslmode=disable"
 http_server:
   address: "0.0.0.0:8082"
   timeout: 4s

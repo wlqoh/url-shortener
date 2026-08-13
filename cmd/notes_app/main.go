@@ -12,7 +12,7 @@ import (
 	"urlshortener/internal/http-server/middleware/logger"
 	"urlshortener/internal/lib/logger/handlers/slogpretty"
 	"urlshortener/internal/lib/logger/sl"
-	"urlshortener/internal/storage/sqlite"
+	"urlshortener/internal/storage/postgres"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -34,7 +34,7 @@ func main() {
 	log.Info("starting server", slog.String("env", cfg.Env))
 	log.Debug("debug logging enabled")
 
-	storage, err := sqlite.New(cfg.StoragePath)
+	storage, err := postgres.New(cfg.StoragePath)
 	if err != nil {
 		log.Error("failed to init storage", sl.Err(err))
 		os.Exit(1)

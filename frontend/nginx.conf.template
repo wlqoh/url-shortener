@@ -12,8 +12,10 @@ server {
         proxy_set_header Authorization "${PROXY_AUTH}";
     }
 
-    # Редирект: одиночный сегмент из 6 символов [A-Za-z0-9] = alias → на бэкенд
-    location ~ "^/[A-Za-z0-9]{6}$" {
+    # Редирект: одиночный сегмент 3–32 символа [A-Za-z0-9_-] = alias → на бэкенд.
+    # Диапазон совпадает с валидацией хвоста во фронте (ALIAS_RE в shorten.ts).
+    # Статика (/assets/*, /favicon.ico) сюда не попадает: содержит «/» или «.».
+    location ~ "^/[A-Za-z0-9_-]{3,32}$" {
         proxy_pass http://backend:8082;
         proxy_set_header Host $host;
     }

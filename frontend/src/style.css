@@ -189,9 +189,58 @@ body {
 
 .forge-form {
   display: flex;
-  gap: 0.75rem;
+  flex-direction: column;
+  gap: 0.6rem;
   width: 100%;
   max-width: 520px;
+}
+
+.forge-row {
+  display: flex;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.alias-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
+  padding: 0 0.35rem;
+  border: 1px solid rgba(125, 130, 138, 0.35);
+  border-radius: 6px;
+  background: rgba(20, 18, 16, 0.35);
+  transition: border-color 0.25s, box-shadow 0.25s;
+}
+
+.alias-row:focus-within {
+  border-color: var(--ember);
+  box-shadow: 0 0 0 3px rgba(255, 106, 0, 0.14);
+}
+
+.alias-prefix {
+  flex-shrink: 0;
+  padding-left: 0.55rem;
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  letter-spacing: 0.01em;
+  user-select: none;
+}
+
+.alias-input {
+  flex: 1;
+  min-width: 0;
+  min-height: 40px;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text-bright);
+  font-size: 0.9rem;
+  padding: 0.4rem 0.5rem 0.4rem 0;
+}
+
+.alias-input::placeholder {
+  color: var(--text-dim);
 }
 
 .url-input {
@@ -350,7 +399,7 @@ body {
 }
 
 @media (max-width: 640px) {
-  .forge-form {
+  .forge-row {
     flex-direction: column;
   }
 

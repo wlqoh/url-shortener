@@ -6,6 +6,7 @@ interface SaveResponse {
 
 export type ShortenErrorKind =
   | 'invalid_url'
+  | 'invalid_alias'
   | 'network'
   | 'auth'
   | 'alias_taken'
@@ -17,7 +18,11 @@ export type ShortenResult =
   | { ok: true; short: string }
   | { ok: false; kind: ShortenErrorKind; message: string }
 
-const SHORT_ORIGIN = import.meta.env.VITE_BACKEND_ORIGIN || window.location.origin
+export const SHORT_ORIGIN = import.meta.env.VITE_BACKEND_ORIGIN || window.location.origin
+
+// Разрешённый формат кастомного хвоста. Должен совпадать с регуляркой редиректа
+// в frontend/nginx.conf.template (^/[A-Za-z0-9_-]{3,32}$).
+const ALIAS_RE = /^[A-Za-z0-9_-]{3,32}$/
 
 export function validateUrl(value: string): boolean {
   try {
@@ -28,17 +33,33 @@ export function validateUrl(value: string): boolean {
   }
 }
 
-export async function shortenUrl(url: string): Promise<ShortenResult> {
+export function validateAlias(value: string): boolean {
+  return ALIAS_RE.test(value)
+}
+
+export async function shortenUrl(url: string, alias = ''): Promise<ShortenResult> {
   if (!validateUrl(url)) {
     return { ok: false, kind: 'invalid_url', message: 'Это не похоже на ссылку — проверьте адрес.' }
   }
+
+  const customAlias = alias.trim()
+  if (customAlias && !validateAlias(customAlias)) {
+    return {
+      ok: false,
+      kind: 'invalid_alias',
+      message: 'Хвост может содержать 3–32 символа: латиница, цифры, «-» и «_».',
+    }
+  }
+
+  const body: { url: string; alias?: string } = { url }
+  if (customAlias) body.alias = customAlias
 
   let response: Response
   try {
     response = await fetch('/url', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url }),
+      body: JSON.stringify(body),
     })
   } catch {
     return { ok: false, kind: 'network', message: 'Горн недоступен — нет связи с сервером.' }
@@ -63,7 +84,10 @@ export async function shortenUrl(url: string): Promise<ShortenResult> {
     const error = data.error ?? ''
 
     if (error.includes('already exists')) {
-      return { ok: false, kind: 'alias_taken', message: 'Такая ссылка уже выкована.' }
+      const message = customAlias
+        ? 'Этот хвост уже занят — выберите другой.'
+        : 'Такая ссылка уже выкована.'
+      return { ok: false, kind: 'alias_taken', message }
     }
     if (error.includes('valid URL') || error.includes('required')) {
       return { ok: false, kind: 'validation', message: 'Адрес не прошёл проверку — попробуйте другую ссылку.' }

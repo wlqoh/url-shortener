@@ -64,22 +64,10 @@ services:
       - backend
     environment:
       PROXY_AUTH: ${PROXY_AUTH}
-    # Порт наружу не публикуется — публичный вход только через caddy (TLS-терминация).
-
-  caddy:
-    image: caddy:2-alpine
-    restart: unless-stopped
-    depends_on:
-      - frontend
     ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./deployment/Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy_data:/data
-      - caddy_config:/config
+      # Публикуем только на loopback — публичный вход даёт системный nginx на хосте
+      # (он же обслуживает остальные сайты на сервере), TLS тоже настраивается там же.
+      - "127.0.0.1:8091:80"
 
 volumes:
   pgdata:
-  caddy_data:
-  caddy_config:

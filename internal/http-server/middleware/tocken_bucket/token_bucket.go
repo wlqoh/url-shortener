@@ -76,26 +76,14 @@ func (tb *TokenBucket) Allow(clientID string) bool {
 }
 
 // getClientIP извлекает реальный IP клиента.
-//
-// ВАЖНО: этот код доверяет заголовкам X-Real-IP / X-Forwarded-For только
-// потому, что приложение стоит ЗА nginx и недоступно напрямую извне
-// (слушает на 127.0.0.1 / во внутренней docker-сети / firewall закрывает
-// прямой доступ к порту приложения). Если это не так — заголовки нельзя
-// использовать без проверки доверенного прокси.
+
 func (tb *TokenBucket) getClientIP(r *http.Request) string {
-	// X-Real-IP выставляется nginx-ом из $remote_addr — клиент подделать
-	// его не может, т.к. nginx перезаписывает этот заголовок целиком.
 	if ip := strings.TrimSpace(r.Header.Get("X-Real-IP")); ip != "" {
 		if net.ParseIP(ip) != nil {
 			return ip
 		}
 	}
 
-	// Фолбэк: X-Forwarded-For. При стандартной директиве
-	// proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-	// nginx ДОБАВЛЯЕТ реальный IP клиента в конец списка, поэтому
-	// доверять можно только последнему элементу, а не первому
-	// (первый может быть подделан клиентом).
 	if xff := r.Header.Get("X-Forwarded-For"); xff != "" {
 		parts := strings.Split(xff, ",")
 		last := strings.TrimSpace(parts[len(parts)-1])
@@ -104,7 +92,6 @@ func (tb *TokenBucket) getClientIP(r *http.Request) string {
 		}
 	}
 
-	// Последний фолбэк: реальный TCP-адрес соединения с nginx.
 	ip, _, err := net.SplitHostPort(r.RemoteAddr)
 	if err != nil {
 		return r.RemoteAddr

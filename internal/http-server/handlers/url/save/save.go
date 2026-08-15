@@ -25,7 +25,10 @@ type Response struct {
 }
 
 // TODO: move to config if needed
-const aliasLength = 6
+const (
+	aliasLength    = 6
+	maxAliasLength = 14
+)
 
 type URLSaver interface {
 	SaveURL(urlToSave, alias string) (int64, error)
@@ -66,6 +69,14 @@ func New(log *slog.Logger, urlSaver URLSaver) http.HandlerFunc {
 		alias := req.Alias
 		if alias == "" {
 			alias = random.NewRandomString(aliasLength)
+		}
+
+		if len(alias) > maxAliasLength {
+			log.Error("invalid alias", sl.Err(errors.New("alias is too long")))
+
+			render.JSON(w, r, response.Error("alias is too long"))
+
+			return
 		}
 
 		id, err := urlSaver.SaveURL(req.URL, alias)

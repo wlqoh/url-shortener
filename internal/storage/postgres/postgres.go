@@ -38,7 +38,7 @@ func New(storagePath string) (*Storage, error) {
 	return &Storage{db: db}, nil
 }
 
-// SaveURL saving url in DB
+// SaveURL saving url in DB.
 func (s *Storage) SaveURL(urlToSave, alias string) (int64, error) {
 	const op = "storage.postgres.SaveURL"
 
@@ -60,7 +60,7 @@ func (s *Storage) SaveURL(urlToSave, alias string) (int64, error) {
 	return id, nil
 }
 
-// GetURL gets url using alias
+// GetURL gets url using alias.
 func (s *Storage) GetURL(alias string) (string, error) {
 	const op = "storage.postgres.GetURL"
 
@@ -76,7 +76,7 @@ func (s *Storage) GetURL(alias string) (string, error) {
 	return resURL, nil
 }
 
-// DeleteURL deleting url from DB using alias
+// DeleteURL deleting url from DB using alias.
 func (s *Storage) DeleteURL(alias string) error {
 	const op = "storage.postgres.DeleteURL"
 
